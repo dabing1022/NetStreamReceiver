@@ -39,7 +39,7 @@ package
 	public class Receive extends Sprite 
 	{
 		/**版本号*/
-		private const VERSION:String = "Version:v1.4";
+		private const VERSION:String = "Version:v1.5";
 		/**缓冲区时间*/
 		private const MIN_BUFFER_TIME:Number = 3;
 		private const MAX_BUFFER_TIME:Number = 10;
@@ -156,6 +156,7 @@ package
 		private function onBufferEmptyTimerHandler(e:TimerEvent):void 
 		{
 			bufferEmptyReconnectTime ++;
+			DebugConsole.addDebugLog(stage, "bufferEmptyReconnectTime: " + bufferEmptyReconnectTime);
 			if (bufferEmptyReconnectTime >= MAX_BUFFER_EMPTY_RECONNECT_TIME)
 			{
 				resetBufferEmptyTimer();
@@ -171,7 +172,7 @@ package
 		{
 			bufferEmptyTimer.reset();
 			bufferEmptyReconnectTime = 0;
-			DebugConsole.addDebugLog(stage, "重置BufferEmpty计时器");
+			DebugConsole.addDebugLog(stage, "重置停止BufferEmpty计时器");
 		}
 		
 		/**
