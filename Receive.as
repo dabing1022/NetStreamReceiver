@@ -39,7 +39,7 @@ package
 	public class Receive extends Sprite 
 	{
 		/**版本号*/
-		private const VERSION:String = "Version:v1.5";
+		private const VERSION:String = "Version:v1.6";
 		/**缓冲区时间*/
 		private const MIN_BUFFER_TIME:Number = 3;
 		private const MAX_BUFFER_TIME:Number = 10;
@@ -86,7 +86,8 @@ package
 		private var screenshotBmp:Bitmap;
 		private var screenshotBmpd:BitmapData;
 		private var isNetworkChange:Boolean = false;
-		
+		/**bufferLength持续为0的统计次数*/
+		private var bufferLengthZeroCount:int = 0;
 		public function Receive():void
 		{
 			addEventListener(Event.ADDED_TO_STAGE, onSetUp);
@@ -275,11 +276,7 @@ package
 					streamStatus = Status.STREAM_UNPUBLISHNOTIFY;
 					UPNFlag += 1;
 					DebugConsole.addDebugLog(stage, "UPNFlag:" + UPNFlag);
-					if (UPNFlag > 4)
-					{
-						startNetConnection();
-						UPNFlag = 0;
-					}
+					startNetConnection();
 					break;
                 case "NetStream.Play.StreamNotFound":
 					closeConnectStream();
@@ -416,8 +413,21 @@ package
 		private function onTotalTimerHandler(e:TimerEvent):void
 		{
 			if (!pStream || !pConnection.connected)	return;
+			//如果流帧频大于0，则清除画面静止截图
 			if (pStream.currentFPS > 0)
 				clearScreenShot();
+			//如果流bufferLength为0，则统计次数+1
+			if (pStream.bufferLength == 0)
+				bufferLengthZeroCount ++;
+			//一旦不为0，则统计次数归0
+			else
+				bufferLengthZeroCount = 0;
+			//bufferLength持续为0统计次数大于MAX_BUFFER_EMPTY_RECONNECT_TIME次数,并且主播没下麦，则重新连接
+			if (bufferLengthZeroCount > MAX_BUFFER_EMPTY_RECONNECT_TIME && playStatus != Status.PLAY_CLOSE) 
+			{
+				bufferLengthZeroCount = 0;
+				startNetConnection();
+			}
 			DebugConsole.addDebugLog(stage, "bufferLength/bufferTime===>" + pStream.bufferLength + "/" + pStream.bufferTime + ", 流帧频:" + int(pStream.currentFPS));
 		}
 		
